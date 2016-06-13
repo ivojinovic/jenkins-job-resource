@@ -13,15 +13,19 @@ payload=$(mktemp $TMPDIR/resource-request.XXXXXX)
 cat > $payload <&0
 cat $payload
 
-#xcode_api_url=$(jq -r '.source.xcode_api_url // ""' < $payload)
+jenkins_url=$(jq -r '.source.jenkins_url // ""' < $payload)
+job_name=$(jq -r '.source.job_name // ""' < $payload)
+job_path=$(jq -r '.source.job_path // ""' < $payload)
+builds_file=$(jq -r '.source.builds_file // ""' < $payload)
 
-curl http://uklonjenkd01.zipcar.com:8080/job/Zipcar%20Android/api/json > builds.txt
-ls -lh builds.txt
+full_jenkins_url=$jenkins_url$job_name$job_path
+curl $full_jenkins_url > $builds_file
+ls -lh $builds_file
 
-build_number=$(cat builds.txt | jq '.["builds"][0]["number"]')
+build_number=$(cat $builds_file | jq '.["builds"][0]["number"]')
 echo $build_number
 
-build_url=$(cat builds.txt | jq -r '.["builds"][0]["url"]')
+build_url=$(cat $builds_file | jq -r '.["builds"][0]["url"]')
 echo $build_url
 
 jq -n '{
