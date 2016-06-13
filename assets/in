@@ -13,24 +13,21 @@ payload=$(mktemp $TMPDIR/resource-request.XXXXXX)
 cat > $payload <&0
 cat $payload
 
-xcode_api_url=$(jq -r '.source.xcode_api_url // ""' < $payload)
-unit_bot_id=$(jq -r '.source.unit_bot_id // ""' < $payload)
-bot_path=$(jq -r '.source.bot_path // ""' < $payload)
-bot_name=$(jq -r '.source.bot_name // ""' < $payload)
+#xcode_api_url=$(jq -r '.source.xcode_api_url // ""' < $payload)
 
-full_bot_url=$xcode_api_url$unit_bot_id$bot_path
-curl $full_bot_url -k > $bot_name.txt
-ls -lh $bot_name.txt
+curl http://uklonjenkd01.zipcar.com:8080/job/Zipcar%20Android/api/json > builds.txt
+ls -lh builds.txt
 
-cat $bot_name.txt | jq '.["results"][0]' > $unit_bot_id
-ls -lh $unit_bot_id
+build_number=$(cat builds.txt | jq '.["builds"][0]["number"]')
+echo $build_number
 
-count=$(cat $bot_name.txt | jq '.["count"]')
+build_url=$(cat builds.txt | jq -r '.["builds"][0]["url"]')
+echo $build_url
 
 jq -n '{
-  "version": { "ref": "'$count'" },
+  "version": { "ref": "'$build_number'" },
   "metadata": [
-    { "name": "commit", "value": "'$count'" },
-    { "name": "author", "value": "'$full_bot_url'" }
+    { "name": "commit", "value": "'$build_number'" },
+    { "name": "author", "value": "'$build_url'" }
   ]
 }' >&3

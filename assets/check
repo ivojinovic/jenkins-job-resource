@@ -9,14 +9,9 @@ exec 1>&2 # redirect all output to stderr for logging
 payload=$(mktemp $TMPDIR/resource-request.XXXXXX)
 cat > $payload <&0
 
-xcode_api_url=$(jq -r '.source.xcode_api_url // ""' < $payload)
-unit_bot_id=$(jq -r '.source.unit_bot_id // ""' < $payload)
-bot_path=$(jq -r '.source.bot_path // ""' < $payload)
-bot_name=$(jq -r '.source.bot_name // ""' < $payload)
+#xcode_api_url=$(jq -r '.source.xcode_api_url // ""' < $payload)
 
-full_bot_url=$xcode_api_url$unit_bot_id$bot_path
-curl $full_bot_url -k > $bot_name.txt
+curl http://uklonjenkd01.zipcar.com:8080/job/Zipcar%20Android/api/json > builds.txt
+build_number=$(cat builds.txt | jq '.["builds"][0]["number"]')
 
-count=$(cat $bot_name.txt | jq '.["count"]')
-
-echo '[{ "ref": "'$count'" }]' >&3
+echo '[{ "ref": "'$build_number'" }]' >&3
